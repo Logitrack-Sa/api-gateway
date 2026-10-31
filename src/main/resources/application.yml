@@ -1,0 +1,66 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    compatibility-verifier:
+      enabled: false
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # Rutas de autenticación y gestión de identidades hacia security-service
+        - id: security-service-public
+          uri: lb://SECURITY-SERVICE
+          predicates:
+            - Path=/api/auth/**
+        - id: security-service-users
+          uri: lb://SECURITY-SERVICE
+          predicates:
+            - Path=/api/users/**
+
+        # Rutas de gestión de envíos y clientes hacia shipment-service
+        - id: shipment-service-route
+          uri: lb://SHIPMENT-SERVICE
+          predicates:
+            - Path=/api/shipments/**, /api/customers/**
+
+        # Rutas de gestión de repartidores hacia courier-service
+        - id: courier-service-route
+          uri: lb://COURIER-SERVICE
+          predicates:
+            - Path=/api/couriers/**
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8065/eureka/}
+    register-with-eureka: ${EUREKA_REGISTER_WITH_EUREKA:true}
+    fetch-registry: ${EUREKA_FETCH_REGISTRY:true}
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+# Configuración de registro y auditoría
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: INFO
+    com.logitrack.gateway: DEBUG
