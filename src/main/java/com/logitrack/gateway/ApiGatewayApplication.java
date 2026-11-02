@@ -11,7 +11,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * construida sobre <b>Spring Cloud Gateway</b> y el stack reactivo de <b>Project Reactor</b>
  * y <b>Netty</b>.</p>
  *
- * <h3>Responsabilidades del API Gateway:</h3>
+ * <h2>Responsabilidades del API Gateway:</h2>
  * <ul>
  *   <li>Punto &uacute;nico de entrada (Single Point of Entry) para todo el tr&aacute;fico externo
  *       hacia la plataforma LogiTrack.</li>
@@ -24,7 +24,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  *       y resiliencia ante ca&iacute;das de servicios downstream.</li>
  * </ul>
  *
- * <h3>Stack Reactivo vs. Bloqueante:</h3>
+ * <h2>Stack Reactivo vs. Bloqueante:</h2>
  * <p>A diferencia de los microservicios tradicionales basados en Spring WebMVC y contenedores
  * Tomcat/Jetty (basados en el modelo de un hilo por petici&oacute;n o Thread-per-request),
  * este microservicio utiliza el paradigma reactivo no bloqueante basado en eventos (Event-Loop).

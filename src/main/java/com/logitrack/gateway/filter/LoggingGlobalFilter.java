@@ -22,7 +22,7 @@ import java.net.InetSocketAddress;
  * cualquiera de los microservicios de LogiTrack (como {@code shipment-service},
  * {@code courier-service} o {@code security-service}).</p>
  *
- * <h3>Pol&iacute;ticas de Seguridad:</h3>
+ * <h2>Pol&iacute;ticas de Seguridad:</h2>
  * <ul>
  *   <li>Se registra el m&eacute;todo HTTP, la URI solicitada y la direcci&oacute;n remota de origen.</li>
  *   <li><b>Nunca</b> se registran tokens JWT completos ni credenciales en texto plano para cumplir
