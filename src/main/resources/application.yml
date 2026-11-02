@@ -4,9 +4,9 @@ server:
 spring:
   application:
     name: api-gateway
+  profiles:
+    default: dev
   cloud:
-    compatibility-verifier:
-      enabled: false
     gateway:
       discovery:
         locator:
@@ -34,11 +34,10 @@ spring:
           uri: lb://COURIER-SERVICE
           predicates:
             - Path=/api/couriers/**
-  config:
-    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}
 
 eureka:
   client:
+    enabled: ${EUREKA_CLIENT_ENABLED:false}
     service-url:
       defaultZone: ${EUREKA_SERVER_URL:http://localhost:8065/eureka/}
     register-with-eureka: ${EUREKA_REGISTER_WITH_EUREKA:true}

@@ -176,3 +176,11 @@ Las pruebas utilizan `WebTestClient` y un perfil aislado (`application-test.yml`
 * **Salud del Gateway:** `GET http://localhost:8080/actuator/health`
 * **Rutas registradas:** `GET http://localhost:8080/actuator/gateway/routes`
 * **Endpoint de fallback:** `GET http://localhost:8080/fallback`
+
+## Contrato de registro (#78)
+
+Compose utiliza `SPRING_PROFILES_ACTIVE=prod,sprint3` y `CONFIG_SERVER_URL`.
+Config Client es obligatorio; el perfil sprint3 centraliza Eureka y anuncia
+`SERVICE_HOST=api-gateway`. Mantener `EUREKA_SERVER_URL=http://eureka-server:8065/eureka/`.
+La compatibilidad Boot 3.5 / Cloud 2025.0 se verifica al arrancar.
+La implementacion de rutas, JWT y CORS continua en #81-#83.
