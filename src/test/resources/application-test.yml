@@ -1,0 +1,29 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: api-gateway-test
+  cloud:
+    compatibility-verifier:
+      enabled: false
+    config:
+      enabled: false
+    gateway:
+      routes:
+        - id: mock-test-route
+          uri: http://localhost:8080
+          predicates:
+            - Path=/test/**
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway

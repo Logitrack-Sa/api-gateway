@@ -1,0 +1,56 @@
+name: CI api-gateway (Java 25 y Spring Cloud Gateway)
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main, develop, 'feat/**', 'fix/**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-gateway-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Maven verify y pruebas reactivas
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Obtener código fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          persist-credentials: false
+
+      - name: Configurar Temurin 25 y caché Maven
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Compilación y ejecución de pruebas unitarias reactivas
+        run: ./mvnw --batch-mode --no-transfer-progress clean test
+
+      - name: Verificación estricta de Javadoc
+        run: ./mvnw --batch-mode --no-transfer-progress javadoc:javadoc
+
+  docker-build:
+    name: Construcción de imagen Docker (sin publicar)
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Obtener código fuente
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          persist-credentials: false
+
+      - name: Construir imagen Docker multietapa Java 25
+        run: docker build -t logitrack/api-gateway:ci-${{ github.sha }} .
+
+      - name: Inspección de metadatos (usuario no privilegiado y puerto 8080)
+        run: |
+          docker image inspect logitrack/api-gateway:ci-${{ github.sha }} --format 'User: {{.Config.User}}, Ports: {{json .Config.ExposedPorts}}'
