@@ -105,3 +105,11 @@ management:
       show-details: always
     gateway:
       access: unrestricted
+
+logitrack:
+  security:
+    jwt:
+      public-key-location: classpath:certs/public.pem
+      issuer: https://security-service
+      key-id: logitrack-main
+      clock-skew-seconds: 30

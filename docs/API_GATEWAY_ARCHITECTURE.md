@@ -33,7 +33,7 @@ Para la issue `#80`, se analizó la relación con el resto del tablero de tareas
 | **#79 (ISSUE 3)** | `[SPRINT 3][CONFIG] Externalizar la configuración de Eureka Server` | `@4lexxe` | `OPEN` | **Dependencia directa:** Requiere externalizar las propiedades de Eureka en `config-repo`. |
 | **#80 (ISSUE 4)** | `[SPRINT 3][GATEWAY] Crear el API Gateway de LogiTrack` | `@GonzaCarrillo` | `CLOSED` | Creación del módulo, dependencias reactivas, Dockerfile, Javadoc y documentación. |
 | **#81 (ISSUE 5)** | `[SPRINT 3][GATEWAY] Implementar rutas dinámicas hacia los microservicios` | `@GonzaCarrillo` | `CLOSED` | Rutas dinámicas lb://, predicados /api/v1/..., ordenamiento, Spring Cloud LoadBalancer, tests y Postman. |
-| **#82 (ISSUE 6)** | `[SPRINT 3][SEGURIDAD] Gestionar JWT y roles desde el API Gateway` | `@GonzaCarrillo` | `OPEN` | Validación perimetral de JWT delegada y filtros de autorización de roles. |
+| **#82 (ISSUE 6)** | `[SPRINT 3][SEGURIDAD] Gestionar JWT y roles desde el API Gateway` | `@GonzaCarrillo` | `CLOSED` | Validación RS256 de JWT, RBAC (ADMIN, CLIENTE, REPARTIDOR), 401/403 reactivos, tests y doc. |
 | **#83 (ISSUE 7)** | `[SPRINT 3][GATEWAY] Configurar CORS y centralizar propiedades` | `@GonzaCarrillo` | `OPEN` | Centralización en `config-repo` y afinamiento de CORS. |
 
 > 💡 **Nota de Independencia:** Para evitar bloquear el desarrollo del Sprint 3 mientras `@4lexxe` finaliza la implementación de `#77` y `#79`, el módulo `api-gateway` se diseñó con perfiles y configuración desacoplada (`optional:configserver:...` y perfiles de prueba herméticos), permitiendo construir, compilar, testear y contenerizar el servicio de forma totalmente independiente.

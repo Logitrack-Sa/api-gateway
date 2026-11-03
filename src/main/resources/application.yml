@@ -109,3 +109,12 @@ logging:
     root: INFO
     org.springframework.cloud.gateway: INFO
     com.logitrack.gateway: DEBUG
+
+# Configuración de Seguridad Perimetral y Validación de JWT (Sprint 3)
+logitrack:
+  security:
+    jwt:
+      public-key-location: ${JWT_PUBLIC_KEY_LOCATION:classpath:certs/public.pem}
+      issuer: ${JWT_ISSUER:https://security-service}
+      key-id: ${JWT_KEY_ID:logitrack-main}
+      clock-skew-seconds: ${JWT_CLOCK_SKEW_SECONDS:30}

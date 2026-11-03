@@ -127,6 +127,24 @@ api-gateway/
 | `EUREKA_REGISTER_WITH_EUREKA` | `true` | Determina si el Gateway se registra en Eureka |
 | `EUREKA_FETCH_REGISTRY` | `true` | Determina si consulta el registro de Eureka para `lb://` |
 | `SPRING_PROFILES_ACTIVE` | `dev` | Perfil de configuración activo (`dev`, `prod`, `test`) |
+| `JWT_PUBLIC_KEY_LOCATION` | `classpath:certs/public.pem` | Ubicación de clave pública RSA (X.509 PEM) |
+| `JWT_ISSUER` | `https://security-service` | Emisor confiable de tokens JWT |
+
+---
+
+## 🔒 Seguridad Perimetral y Gestión de Roles RBAC (Issue #82)
+
+El API Gateway centraliza la validación criptográfica de tokens y el control de acceso:
+* **Autenticación Delegada:** La emisión de tokens ocurre en `security-service` (`/api/v1/auth/login`).
+* **Validación Descentralizada:** El Gateway verifica la firma `RS256` con la clave pública RSA localmente sin invocar por HTTP a `security-service` por cada petición.
+* **Control de Acceso Basado en Roles (RBAC):**
+  * `ADMIN`: Acceso total (usuarios, clientes, repartidores, cancelación, asignación).
+  * `CLIENTE`: Creación y consulta de envíos propios y perfil `auth/me`. Rechazo 403 en gestión de usuarios, repartidores y clientes.
+  * `REPARTIDOR`: Actualización de estado de envíos (`PATCH .../status`), consulta de estado interno mínimo. Rechazo 403 en creación de envíos y administración.
+* **Respuestas de Seguridad:** HTTP `401 Unauthorized` ante token ausente, expirado o manipulado; HTTP `403 Forbidden` ante falta de rol.
+* **Privacidad de Registros:** Tokens nunca son expuestos en texto plano en los logs de auditoría.
+
+> 📖 **Documentación Técnica Detallada de Seguridad:** Consulte [ISSUE-82-SEGURIDAD-JWT-ROLES.md](docs/ISSUE-82-SEGURIDAD-JWT-ROLES.md).
 
 ---
 

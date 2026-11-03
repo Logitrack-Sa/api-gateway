@@ -51,6 +51,17 @@
         </dependency>
 
         <!--
+            Nimbus JOSE+JWT:
+            Biblioteca criptográfica para análisis, validación de firma digital RS256 y extracción
+            de claims de identidad y roles de tokens JWT en el perímetro reactivo del Gateway.
+        -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>9.37.4</version>
+        </dependency>
+
+        <!--
             Spring Cloud Config Client:
             Permite la obtención centralizada y dinámica de configuraciones desde config-server.
         -->
