@@ -4,9 +4,9 @@ server:
 spring:
   application:
     name: api-gateway
+  profiles:
+    default: dev
   cloud:
-    compatibility-verifier:
-      enabled: false
     gateway:
       discovery:
         locator:
@@ -86,6 +86,7 @@ spring:
 
 eureka:
   client:
+    enabled: ${EUREKA_CLIENT_ENABLED:true}
     service-url:
       defaultZone: ${EUREKA_SERVER_URL:http://localhost:8065/eureka/}
     register-with-eureka: ${EUREKA_REGISTER_WITH_EUREKA:true}
