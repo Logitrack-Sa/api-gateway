@@ -130,14 +130,23 @@ api-gateway/
 
 ---
 
-## 🛠️ Rutas Predeterminadas Configuradas
+## 🛠️ Rutas Dinámicas Configuradas (Issue #81)
 
-| ID de Ruta | Predicado (Ruta externa) | Destino Dinámico | Microservicio |
-| :--- | :--- | :--- | :--- |
-| `security-service-public` | `/api/auth/**` | `lb://SECURITY-SERVICE` | Autenticación y registro |
-| `security-service-users` | `/api/users/**` | `lb://SECURITY-SERVICE` | Gestión de usuarios |
-| `shipment-service-route` | `/api/shipments/**`, `/api/customers/**` | `lb://SHIPMENT-SERVICE` | Gestión de envíos y clientes |
-| `courier-service-route` | `/api/couriers/**` | `lb://COURIER-SERVICE` | Gestión de repartidores |
+Las rutas se resuelven dinámicamente mediante **Spring Cloud LoadBalancer** consultando el catálogo de instancias de **Eureka Server**, garantizando alta disponibilidad sin depender de direcciones IP fijas:
+
+| ID de Ruta | Predicado (Ruta externa) | Destino Dinámico | Orden | Microservicio |
+| :--- | :--- | :--- | :---: | :--- |
+| `security-service-auth` | `/api/v1/auth/**`, `/api/auth/**` | `lb://SECURITY-SERVICE` | `100` | Autenticación, registro, perfil y JWKS |
+| `security-service-users` | `/api/v1/users/**`, `/api/users/**` | `lb://SECURITY-SERVICE` | `110` | Gestión de identidades y usuarios (ADMIN) |
+| `courier-service-couriers` | `/api/v1/couriers/**`, `/api/couriers/**` | `lb://COURIER-SERVICE` | `200` | Gestión operativa de repartidores |
+| `courier-service-internal` | `/api/v1/internal/couriers/**`, `/api/internal/couriers/**` | `lb://COURIER-SERVICE` | `210` | Estado mínimo para integración entre microservicios |
+| `shipment-service-shipments` | `/api/v1/shipments/**`, `/api/shipments/**` | `lb://SHIPMENT-SERVICE` | `300` | Ciclo de vida, asignación y auditoría de envíos |
+| `shipment-service-customers` | `/api/v1/customers/**`, `/api/customers/**` | `lb://SHIPMENT-SERVICE` | `310` | Creación y consulta de clientes |
+| `security-service-openapi` | `/v3/api-docs/security-service` | `lb://SECURITY-SERVICE` | `400` | Documentación OpenAPI reescrita |
+| `courier-service-openapi` | `/v3/api-docs/courier-service` | `lb://COURIER-SERVICE` | `410` | Documentación OpenAPI reescrita |
+| `shipment-service-openapi` | `/v3/api-docs/shipment-service` | `lb://SHIPMENT-SERVICE` | `420` | Documentación OpenAPI reescrita |
+
+> 📖 **Documentación Técnica Detallada:** Consulte [ISSUE-81-RUTAS-DINAMICAS.md](docs/ISSUE-81-RUTAS-DINAMICAS.md) y la colección de pruebas en [docs/postman/LogiTrack_Gateway_Dynamic_Routes.postman_collection.json](docs/postman/LogiTrack_Gateway_Dynamic_Routes.postman_collection.json).
 
 ---
 

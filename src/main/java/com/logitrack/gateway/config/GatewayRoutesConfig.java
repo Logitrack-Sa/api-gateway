@@ -8,17 +8,27 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuraci&oacute;n y registro complementario de rutas para Spring Cloud Gateway.
+ * Configuraci&oacute;n y centralizaci&oacute;n del enrutamiento din&aacute;mico para Spring Cloud Gateway.
  *
- * <p>El API Gateway soporta la definici&oacute;n declarativa de rutas mediante descriptores
- * en archivos YAML/Properties (alimentados din&aacute;micamente por Config Server), as&iacute; como
- * la construcci&oacute;n program&aacute;tica a trav&eacute;s de beans {@link RouteLocator}.</p>
+ * <p>Esta clase define las convenciones estructurales, identificadores y nombres l&oacute;gicos
+ * de los microservicios downstream registrados en Eureka Server, posibilitando la resoluci&oacute;n
+ * din&aacute;mica de instancias mediante el balanceador de carga del lado del cliente
+ * ({@code Spring Cloud LoadBalancer}) a trav&eacute;s del prefijo de esquema {@code lb://}.</p>
  *
- * <p>Esta clase centraliza la inspecci&oacute;n y trazabilidad de las rutas cargadas en el Gateway
- * al iniciar el ciclo de vida del contenedor de Spring.</p>
+ * <h2>Microservicios de Destino y Nombres L&oacute;gicos en Eureka:</h2>
+ * <ul>
+ *   <li><b>Security Service:</b> {@code SECURITY-SERVICE} &rarr; Rutas {@code /api/v1/auth/**} y {@code /api/v1/users/**}.</li>
+ *   <li><b>Courier Service:</b> {@code COURIER-SERVICE} &rarr; Rutas {@code /api/v1/couriers/**} e {@code /api/v1/internal/couriers/**}.</li>
+ *   <li><b>Shipment Service:</b> {@code SHIPMENT-SERVICE} &rarr; Rutas {@code /api/v1/shipments/**} y {@code /api/v1/customers/**}.</li>
+ * </ul>
+ *
+ * <h2>Garant&iacute;a de No Conflictos:</h2>
+ * <p>Se asignan prioridades expl&iacute;citas (orden num&eacute;rico ascendente) y predicados de ruta
+ * disjuntos para garantizar que las peticiones se despachen al microservicio adecuado sin
+ * ambig&uuml;edades ni solapamientos topol&oacute;gicos.</p>
  *
  * @author GonzaCarrillo
- * @version 1.0.0
+ * @version 1.1.0
  * @since Sprint 3
  */
 @Configuration
@@ -27,18 +37,85 @@ public class GatewayRoutesConfig {
     private static final Logger log = LoggerFactory.getLogger(GatewayRoutesConfig.class);
 
     /**
-     * Registra un ejecutor que imprime en el log el diagn&oacute;stico de rutas activas
-     * registradas en el {@link RouteLocator} una vez que el contexto reactivo est&aacute; listo.
+     * Constructor predeterminado de la clase de configuraci&oacute;n de rutas din&aacute;micas.
+     */
+    public GatewayRoutesConfig() {
+    }
+
+    /**
+     * Nombre l&oacute;gico del microservicio de autenticaci&oacute;n y usuarios registrado en Eureka.
+     */
+    public static final String SERVICE_SECURITY = "SECURITY-SERVICE";
+
+    /**
+     * URI din&aacute;mica balanceada hacia el microservicio de autenticaci&oacute;n y usuarios.
+     */
+    public static final String URI_SECURITY = "lb://" + SERVICE_SECURITY;
+
+    /**
+     * Nombre l&oacute;gico del microservicio de repartidores registrado en Eureka.
+     */
+    public static final String SERVICE_COURIER = "COURIER-SERVICE";
+
+    /**
+     * URI din&aacute;mica balanceada hacia el microservicio de repartidores.
+     */
+    public static final String URI_COURIER = "lb://" + SERVICE_COURIER;
+
+    /**
+     * Nombre l&oacute;gico del microservicio de env&iacute;os y clientes registrado en Eureka.
+     */
+    public static final String SERVICE_SHIPMENT = "SHIPMENT-SERVICE";
+
+    /**
+     * URI din&aacute;mica balanceada hacia el microservicio de env&iacute;os y clientes.
+     */
+    public static final String URI_SHIPMENT = "lb://" + SERVICE_SHIPMENT;
+
+    /**
+     * Identificador de la ruta de autenticaci&oacute;n p&uacute;blica y credenciales.
+     */
+    public static final String ROUTE_SECURITY_AUTH = "security-service-auth";
+
+    /**
+     * Identificador de la ruta de gesti&oacute;n de identidades y usuarios administrados.
+     */
+    public static final String ROUTE_SECURITY_USERS = "security-service-users";
+
+    /**
+     * Identificador de la ruta de administraci&oacute;n y consulta de repartidores.
+     */
+    public static final String ROUTE_COURIER_COURIERS = "courier-service-couriers";
+
+    /**
+     * Identificador de la ruta interna de estado operativo m&iacute;nimo de repartidores.
+     */
+    public static final String ROUTE_COURIER_INTERNAL = "courier-service-internal";
+
+    /**
+     * Identificador de la ruta de creaci&oacute;n, consulta y transiciones de env&iacute;os.
+     */
+    public static final String ROUTE_SHIPMENT_SHIPMENTS = "shipment-service-shipments";
+
+    /**
+     * Identificador de la ruta de gesti&oacute;n y consulta de clientes.
+     */
+    public static final String ROUTE_SHIPMENT_CUSTOMERS = "shipment-service-customers";
+
+    /**
+     * Registra un ejecutor de diagn&oacute;stico que audita en los registros del sistema
+     * las rutas activas cargadas en el {@link RouteLocator} una vez inicializado el contexto reactivo.
      *
-     * @param routeLocator El localizador de rutas reactivo inyectado por Spring Cloud Gateway.
+     * @param routeLocator El localizador de rutas reactivo prove&iacute;do por Spring Cloud Gateway.
      * @return Una instancia de {@link CommandLineRunner} lista para ejecutarse al arranque.
      */
     @Bean
     public CommandLineRunner logActiveRoutes(RouteLocator routeLocator) {
         return args -> routeLocator.getRoutes()
-                .subscribe(route -> log.info("[Gateway Route] ID: {} | URI: {} | Predicates: {}",
+                .subscribe(route -> log.info("[Gateway Dynamic Route] ID: {} | URI: {} | Predicates: {} | Order: {}",
                         route.getId(),
                         route.getUri(),
-                        route.getPredicate()));
+                        route.getPredicate(),
+                        route.getOrder()));
     }
 }

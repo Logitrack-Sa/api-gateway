@@ -41,6 +41,16 @@
         </dependency>
 
         <!--
+            Spring Cloud LoadBalancer:
+            Habilita la resolución reactiva de balanceo de carga del lado del cliente (Client-Side Load Balancing)
+            para URIs dinámicas de esquema lb://SERVICE-NAME consultando las instancias registradas en Eureka.
+        -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
+        <!--
             Spring Cloud Config Client:
             Permite la obtención centralizada y dinámica de configuraciones desde config-server.
         -->

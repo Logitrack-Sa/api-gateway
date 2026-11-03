@@ -30,6 +30,12 @@ import java.util.Map;
 public class FallbackController {
 
     /**
+     * Constructor predeterminado del controlador reactivo de fallback.
+     */
+    public FallbackController() {
+    }
+
+    /**
      * Respuesta de contingencia predeterminada cuando un servicio general no est&aacute; disponible.
      *
      * @return {@link Mono} con {@link ResponseEntity} HTTP 503 y detalle de contingencia.

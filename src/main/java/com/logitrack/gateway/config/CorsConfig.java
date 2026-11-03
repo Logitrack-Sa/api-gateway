@@ -28,6 +28,12 @@ import java.util.Collections;
 public class CorsConfig {
 
     /**
+     * Constructor predeterminado de la clase de configuraci&oacute;n de CORS.
+     */
+    public CorsConfig() {
+    }
+
+    /**
      * Define el filtro reactivo de CORS para interceptar todas las rutas procesadas por el Gateway.
      *
      * <p>Permite:</p>

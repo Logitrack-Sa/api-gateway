@@ -31,8 +31,8 @@ Para la issue `#80`, se analizó la relación con el resto del tablero de tareas
 | :--- | :--- | :--- | :--- | :--- |
 | **#77 (ISSUE 1)** | `[SPRINT 3][EUREKA] Implementar servidor de descubrimiento de servicios` | `@4lexxe` | `OPEN` | **Dependencia directa:** Requiere que Eureka Server esté disponible para validar el registro y resolución de servicios downstream. |
 | **#79 (ISSUE 3)** | `[SPRINT 3][CONFIG] Externalizar la configuración de Eureka Server` | `@4lexxe` | `OPEN` | **Dependencia directa:** Requiere externalizar las propiedades de Eureka en `config-repo`. |
-| **#80 (ISSUE 4)** | `[SPRINT 3][GATEWAY] Crear el API Gateway de LogiTrack` | `@GonzaCarrillo` | `IN PROGRESS` | **Esta issue:** Creación del módulo, dependencias reactivas, Dockerfile, Javadoc y documentación. |
-| **#81 (ISSUE 5)** | `[SPRINT 3][GATEWAY] Implementar rutas dinámicas hacia los microservicios` | `@GonzaCarrillo` | `OPEN` | Extensión de rutas, filtros de reescritura y balanceador Spring Cloud LoadBalancer. |
+| **#80 (ISSUE 4)** | `[SPRINT 3][GATEWAY] Crear el API Gateway de LogiTrack` | `@GonzaCarrillo` | `CLOSED` | Creación del módulo, dependencias reactivas, Dockerfile, Javadoc y documentación. |
+| **#81 (ISSUE 5)** | `[SPRINT 3][GATEWAY] Implementar rutas dinámicas hacia los microservicios` | `@GonzaCarrillo` | `CLOSED` | Rutas dinámicas lb://, predicados /api/v1/..., ordenamiento, Spring Cloud LoadBalancer, tests y Postman. |
 | **#82 (ISSUE 6)** | `[SPRINT 3][SEGURIDAD] Gestionar JWT y roles desde el API Gateway` | `@GonzaCarrillo` | `OPEN` | Validación perimetral de JWT delegada y filtros de autorización de roles. |
 | **#83 (ISSUE 7)** | `[SPRINT 3][GATEWAY] Configurar CORS y centralizar propiedades` | `@GonzaCarrillo` | `OPEN` | Centralización en `config-repo` y afinamiento de CORS. |
 
