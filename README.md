@@ -15,7 +15,7 @@ Este componente centraliza el acceso externo, desacopla a los clientes de las di
   * **ISSUE 1** ([#77](https://github.com/Logitrack-Sa/shipment-service/issues/77)): *Implementar servidor de descubrimiento de servicios (Eureka Server)* - Asignada a `@4lexxe` (Estado: `OPEN`).
   * **ISSUE 3** ([#79](https://github.com/Logitrack-Sa/shipment-service/issues/79)): *Externalizar la configuración de Eureka Server en Config Server* - Asignada a `@4lexxe` (Estado: `OPEN`).
   * **ISSUE 5** ([#81](https://github.com/Logitrack-Sa/shipment-service/issues/81)): *Implementar rutas dinámicas hacia los microservicios*.
-  * **ISSUE 7** ([#83](https://github.com/Logitrack-Sa/shipment-service/issues/83)): *Configuración centralizada y CORS del Gateway en Config Server*.
+  * **ISSUE 7** ([#83](https://github.com/Logitrack-Sa/shipment-service/issues/83)): *Configuración centralizada y CORS del Gateway en Config Server* (Estado: `CLOSED`). Documentación en [ISSUE-83-CORS-CENTRALIZACION-PROPIEDADES.md](docs/ISSUE-83-CORS-CENTRALIZACION-PROPIEDADES.md).
 
 ---
 
@@ -66,9 +66,11 @@ Este componente centraliza el acceso externo, desacopla a los clientes de las di
 * Al usar el prefijo `optional:`, el servicio puede iniciar con valores por defecto locales si Config Server está en mantenimiento o en proceso de arranque.
 * En `config-repo`, se definieron los archivos `api-gateway.properties`, `api-gateway-dev.properties` y `api-gateway-prod.properties` para la centralización completa de parámetros perimetrales.
 
-### 4. CORS Reactivo Centralizado (`CorsConfig`)
-* Utiliza `CorsWebFilter` y `UrlBasedCorsConfigurationSource` de Spring WebFlux.
-* Evita la duplicación de encabezados CORS (`Access-Control-Allow-Origin`) en los microservicios aguas abajo y procesa de forma nativa las peticiones preflight `OPTIONS`.
+### 4. CORS Reactivo Centralizado (`CorsConfig` y `CorsProperties`)
+* Utiliza `CorsWebFilter` y `UrlBasedCorsConfigurationSource` de Spring WebFlux sincronizado con propiedades externalizadas (`logitrack.gateway.cors`).
+* Permite únicamente los orígenes necesarios (React `:3000`, Vite `:5173`, Angular `:4200`, desarrollo local `:8080` y dominios seguros de producción).
+* Procesa de forma nativa e inmediata las peticiones preflight `OPTIONS` con respuesta `200 OK` y caché `maxAge: 3600`, sin ser interceptadas por el filtro de seguridad.
+* **Prevención de respuestas CORS duplicadas:** Configura el filtro perimetral `DedupeResponseHeader` (`RETAIN_FIRST`) en `default-filters`, deduplicando cualquier cabecera `Access-Control-Allow-*` emitida por microservicios downstream.
 
 ### 5. Auditoría de Tráfico Seguro (`LoggingGlobalFilter`)
 * Intercepta todas las peticiones externas registrando método, URI, IP del cliente y tiempo total de respuesta.
@@ -100,17 +102,22 @@ api-gateway/
     │   │       ├── ApiGatewayApplication.java             # Clase principal anotada con Javadoc exhaustivo
     │   │       ├── config/
     │   │       │   ├── CorsConfig.java                    # Filtro reactivo CORS (WebFlux)
+    │   │       │   ├── CorsProperties.java                # Propiedades externalizadas de CORS
     │   │       │   └── GatewayRoutesConfig.java           # Inspección y configuración de rutas
     │   │       ├── controller/
     │   │       │   └── FallbackController.java            # Endpoints reactivos de contingencia (503)
-    │   │       └── filter/
-    │   │           └── LoggingGlobalFilter.java           # Auditoría perimetral sin fuga de tokens
+    │   │       ├── filter/
+    │   │       │   └── LoggingGlobalFilter.java           # Auditoría perimetral sin fuga de tokens
+    │   │       └── security/                              # Seguridad perimetral RS256 y RBAC (Sprint 3)
     │   └── resources/
     │       └── application.yml                            # Rutas lb://, Config Server y Eureka
     └── test/
         ├── java/
         │   └── com/logitrack/gateway/
-        │       └── ApiGatewayApplicationTests.java        # Pruebas reactivas con WebTestClient
+        │       ├── ApiGatewayApplicationTests.java        # Pruebas reactivas con WebTestClient
+        │       ├── DynamicRoutingIntegrationTest.java     # Pruebas de enrutamiento dinámico lb:// (#81)
+        │       ├── GatewayCorsIntegrationTest.java        # Pruebas de CORS, preflights y deduplicación (#83)
+        │       └── GatewayJwtSecurityIntegrationTest.java # Pruebas de validación JWT y RBAC (#82)
         └── resources/
             └── application-test.yml                       # Perfil hermético para pruebas unitarias
 ```
@@ -127,6 +134,7 @@ api-gateway/
 | `EUREKA_REGISTER_WITH_EUREKA` | `true` | Determina si el Gateway se registra en Eureka |
 | `EUREKA_FETCH_REGISTRY` | `true` | Determina si consulta el registro de Eureka para `lb://` |
 | `SPRING_PROFILES_ACTIVE` | `dev` | Perfil de configuración activo (`dev`, `prod`, `test`) |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:3000,...` | Lista de orígenes autorizados para CORS |
 | `JWT_PUBLIC_KEY_LOCATION` | `classpath:certs/public.pem` | Ubicación de clave pública RSA (X.509 PEM) |
 | `JWT_ISSUER` | `https://security-service` | Emisor confiable de tokens JWT |
 

@@ -12,6 +12,8 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials Access-Control-Allow-Methods Access-Control-Allow-Headers, RETAIN_FIRST
       routes:
         # 1. security-service: Autenticación, registro, perfil y llaves públicas
         - id: security-service-auth
@@ -110,8 +112,40 @@ logging:
     org.springframework.cloud.gateway: INFO
     com.logitrack.gateway: DEBUG
 
-# Configuración de Seguridad Perimetral y Validación de JWT (Sprint 3)
+# Configuración de LogiTrack (CORS perimetral y Seguridad JWT)
 logitrack:
+  gateway:
+    cors:
+      enabled: true
+      allowed-origins:
+        - "http://localhost:3000"
+        - "http://localhost:5173"
+        - "http://localhost:4200"
+        - "http://localhost:8080"
+        - "http://127.0.0.1:3000"
+        - "http://127.0.0.1:5173"
+      allowed-methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - PATCH
+        - OPTIONS
+      allowed-headers:
+        - Authorization
+        - Content-Type
+        - Accept
+        - Origin
+        - X-Requested-With
+        - Access-Control-Request-Method
+        - Access-Control-Request-Headers
+      exposed-headers:
+        - Authorization
+        - Content-Disposition
+        - X-User-Id
+        - X-User-Roles
+      allow-credentials: true
+      max-age: 3600
   security:
     jwt:
       public-key-location: ${JWT_PUBLIC_KEY_LOCATION:classpath:certs/public.pem}
