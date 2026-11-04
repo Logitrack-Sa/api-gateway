@@ -15,7 +15,7 @@ Este componente centraliza el acceso externo, desacopla a los clientes de las di
   * **ISSUE 1** ([#77](https://github.com/Logitrack-Sa/shipment-service/issues/77)): *Implementar servidor de descubrimiento de servicios (Eureka Server)* - Asignada a `@4lexxe` (Estado: `OPEN`).
   * **ISSUE 3** ([#79](https://github.com/Logitrack-Sa/shipment-service/issues/79)): *Externalizar la configuración de Eureka Server en Config Server* - Asignada a `@4lexxe` (Estado: `OPEN`).
   * **ISSUE 5** ([#81](https://github.com/Logitrack-Sa/shipment-service/issues/81)): *Implementar rutas dinámicas hacia los microservicios*.
-  * **ISSUE 7** ([#83](https://github.com/Logitrack-Sa/shipment-service/issues/83)): *Configuración centralizada y CORS del Gateway en Config Server*.
+  * **ISSUE 7** ([#83](https://github.com/Logitrack-Sa/shipment-service/issues/83)): *Configuración centralizada y CORS del Gateway en Config Server* (Estado: `CLOSED`). Documentación en [ISSUE-83-CORS-CENTRALIZACION-PROPIEDADES.md](docs/ISSUE-83-CORS-CENTRALIZACION-PROPIEDADES.md).
 
 ---
 
@@ -66,9 +66,11 @@ Este componente centraliza el acceso externo, desacopla a los clientes de las di
 * Al usar el prefijo `optional:`, el servicio puede iniciar con valores por defecto locales si Config Server está en mantenimiento o en proceso de arranque.
 * En `config-repo`, se definieron los archivos `api-gateway.properties`, `api-gateway-dev.properties` y `api-gateway-prod.properties` para la centralización completa de parámetros perimetrales.
 
-### 4. CORS Reactivo Centralizado (`CorsConfig`)
-* Utiliza `CorsWebFilter` y `UrlBasedCorsConfigurationSource` de Spring WebFlux.
-* Evita la duplicación de encabezados CORS (`Access-Control-Allow-Origin`) en los microservicios aguas abajo y procesa de forma nativa las peticiones preflight `OPTIONS`.
+### 4. CORS Reactivo Centralizado (`CorsConfig` y `CorsProperties`)
+* Utiliza `CorsWebFilter` y `UrlBasedCorsConfigurationSource` de Spring WebFlux sincronizado con propiedades externalizadas (`logitrack.gateway.cors`).
+* Permite únicamente los orígenes necesarios (React `:3000`, Vite `:5173`, Angular `:4200`, desarrollo local `:8080` y dominios seguros de producción).
+* Procesa de forma nativa e inmediata las peticiones preflight `OPTIONS` con respuesta `200 OK` y caché `maxAge: 3600`, sin ser interceptadas por el filtro de seguridad.
+* **Prevención de respuestas CORS duplicadas:** Configura el filtro perimetral `DedupeResponseHeader` (`RETAIN_FIRST`) en `default-filters`, deduplicando cualquier cabecera `Access-Control-Allow-*` emitida por microservicios downstream.
 
 ### 5. Auditoría de Tráfico Seguro (`LoggingGlobalFilter`)
 * Intercepta todas las peticiones externas registrando método, URI, IP del cliente y tiempo total de respuesta.
@@ -100,17 +102,22 @@ api-gateway/
     │   │       ├── ApiGatewayApplication.java             # Clase principal anotada con Javadoc exhaustivo
     │   │       ├── config/
     │   │       │   ├── CorsConfig.java                    # Filtro reactivo CORS (WebFlux)
+    │   │       │   ├── CorsProperties.java                # Propiedades externalizadas de CORS
     │   │       │   └── GatewayRoutesConfig.java           # Inspección y configuración de rutas
     │   │       ├── controller/
     │   │       │   └── FallbackController.java            # Endpoints reactivos de contingencia (503)
-    │   │       └── filter/
-    │   │           └── LoggingGlobalFilter.java           # Auditoría perimetral sin fuga de tokens
+    │   │       ├── filter/
+    │   │       │   └── LoggingGlobalFilter.java           # Auditoría perimetral sin fuga de tokens
+    │   │       └── security/                              # Seguridad perimetral RS256 y RBAC (Sprint 3)
     │   └── resources/
     │       └── application.yml                            # Rutas lb://, Config Server y Eureka
     └── test/
         ├── java/
         │   └── com/logitrack/gateway/
-        │       └── ApiGatewayApplicationTests.java        # Pruebas reactivas con WebTestClient
+        │       ├── ApiGatewayApplicationTests.java        # Pruebas reactivas con WebTestClient
+        │       ├── DynamicRoutingIntegrationTest.java     # Pruebas de enrutamiento dinámico lb:// (#81)
+        │       ├── GatewayCorsIntegrationTest.java        # Pruebas de CORS, preflights y deduplicación (#83)
+        │       └── GatewayJwtSecurityIntegrationTest.java # Pruebas de validación JWT y RBAC (#82)
         └── resources/
             └── application-test.yml                       # Perfil hermético para pruebas unitarias
 ```
@@ -127,17 +134,45 @@ api-gateway/
 | `EUREKA_REGISTER_WITH_EUREKA` | `true` | Determina si el Gateway se registra en Eureka |
 | `EUREKA_FETCH_REGISTRY` | `true` | Determina si consulta el registro de Eureka para `lb://` |
 | `SPRING_PROFILES_ACTIVE` | `dev` | Perfil de configuración activo (`dev`, `prod`, `test`) |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:3000,...` | Lista de orígenes autorizados para CORS |
+| `JWT_PUBLIC_KEY_LOCATION` | `classpath:certs/public.pem` | Ubicación de clave pública RSA (X.509 PEM) |
+| `JWT_ISSUER` | `https://security-service` | Emisor confiable de tokens JWT |
 
 ---
 
-## 🛠️ Rutas Predeterminadas Configuradas
+## 🔒 Seguridad Perimetral y Gestión de Roles RBAC (Issue #82)
 
-| ID de Ruta | Predicado (Ruta externa) | Destino Dinámico | Microservicio |
-| :--- | :--- | :--- | :--- |
-| `security-service-public` | `/api/auth/**` | `lb://SECURITY-SERVICE` | Autenticación y registro |
-| `security-service-users` | `/api/users/**` | `lb://SECURITY-SERVICE` | Gestión de usuarios |
-| `shipment-service-route` | `/api/shipments/**`, `/api/customers/**` | `lb://SHIPMENT-SERVICE` | Gestión de envíos y clientes |
-| `courier-service-route` | `/api/couriers/**` | `lb://COURIER-SERVICE` | Gestión de repartidores |
+El API Gateway centraliza la validación criptográfica de tokens y el control de acceso:
+* **Autenticación Delegada:** La emisión de tokens ocurre en `security-service` (`/api/v1/auth/login`).
+* **Validación Descentralizada:** El Gateway verifica la firma `RS256` con la clave pública RSA localmente sin invocar por HTTP a `security-service` por cada petición.
+* **Control de Acceso Basado en Roles (RBAC):**
+  * `ADMIN`: Acceso total (usuarios, clientes, repartidores, cancelación, asignación).
+  * `CLIENTE`: Creación y consulta de envíos propios y perfil `auth/me`. Rechazo 403 en gestión de usuarios, repartidores y clientes.
+  * `REPARTIDOR`: Actualización de estado de envíos (`PATCH .../status`), consulta de estado interno mínimo. Rechazo 403 en creación de envíos y administración.
+* **Respuestas de Seguridad:** HTTP `401 Unauthorized` ante token ausente, expirado o manipulado; HTTP `403 Forbidden` ante falta de rol.
+* **Privacidad de Registros:** Tokens nunca son expuestos en texto plano en los logs de auditoría.
+
+> 📖 **Documentación Técnica Detallada de Seguridad:** Consulte [ISSUE-82-SEGURIDAD-JWT-ROLES.md](docs/ISSUE-82-SEGURIDAD-JWT-ROLES.md).
+
+---
+
+## 🛠️ Rutas Dinámicas Configuradas (Issue #81)
+
+Las rutas se resuelven dinámicamente mediante **Spring Cloud LoadBalancer** consultando el catálogo de instancias de **Eureka Server**, garantizando alta disponibilidad sin depender de direcciones IP fijas:
+
+| ID de Ruta | Predicado (Ruta externa) | Destino Dinámico | Orden | Microservicio |
+| :--- | :--- | :--- | :---: | :--- |
+| `security-service-auth` | `/api/v1/auth/**`, `/api/auth/**` | `lb://SECURITY-SERVICE` | `100` | Autenticación, registro, perfil y JWKS |
+| `security-service-users` | `/api/v1/users/**`, `/api/users/**` | `lb://SECURITY-SERVICE` | `110` | Gestión de identidades y usuarios (ADMIN) |
+| `courier-service-couriers` | `/api/v1/couriers/**`, `/api/couriers/**` | `lb://COURIER-SERVICE` | `200` | Gestión operativa de repartidores |
+| `courier-service-internal` | `/api/v1/internal/couriers/**`, `/api/internal/couriers/**` | `lb://COURIER-SERVICE` | `210` | Estado mínimo para integración entre microservicios |
+| `shipment-service-shipments` | `/api/v1/shipments/**`, `/api/shipments/**` | `lb://SHIPMENT-SERVICE` | `300` | Ciclo de vida, asignación y auditoría de envíos |
+| `shipment-service-customers` | `/api/v1/customers/**`, `/api/customers/**` | `lb://SHIPMENT-SERVICE` | `310` | Creación y consulta de clientes |
+| `security-service-openapi` | `/v3/api-docs/security-service` | `lb://SECURITY-SERVICE` | `400` | Documentación OpenAPI reescrita |
+| `courier-service-openapi` | `/v3/api-docs/courier-service` | `lb://COURIER-SERVICE` | `410` | Documentación OpenAPI reescrita |
+| `shipment-service-openapi` | `/v3/api-docs/shipment-service` | `lb://SHIPMENT-SERVICE` | `420` | Documentación OpenAPI reescrita |
+
+> 📖 **Documentación Técnica Detallada:** Consulte [ISSUE-81-RUTAS-DINAMICAS.md](docs/ISSUE-81-RUTAS-DINAMICAS.md) y la colección de pruebas en [docs/postman/LogiTrack_Gateway_Dynamic_Routes.postman_collection.json](docs/postman/LogiTrack_Gateway_Dynamic_Routes.postman_collection.json).
 
 ---
 

@@ -40,6 +40,12 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 public class ApiGatewayApplication {
 
     /**
+     * Constructor predeterminado de la clase de configuraci&oacute;n y arranque de la aplicaci&oacute;n.
+     */
+    public ApiGatewayApplication() {
+    }
+
+    /**
      * Punto de entrada principal que inicializa el contexto de la aplicaci&oacute;n Spring Boot.
      *
      * @param args Argumentos pasados en la l&iacute;nea de comandos al arrancar el servicio.

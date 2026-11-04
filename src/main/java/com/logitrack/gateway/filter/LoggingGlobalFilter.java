@@ -40,6 +40,12 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
     private static final Logger log = LoggerFactory.getLogger(LoggingGlobalFilter.class);
 
     /**
+     * Constructor predeterminado del filtro global de auditor&iacute;a de tr&aacute;fico perimetral.
+     */
+    public LoggingGlobalFilter() {
+    }
+
+    /**
      * Intercepta la petici&oacute;n reactiva entrante, registra su informaci&oacute;n esencial de auditor&iacute;a
      * y contin&uacute;a con la cadena de filtros del Gateway.
      *

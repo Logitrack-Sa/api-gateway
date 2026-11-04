@@ -1,0 +1,418 @@
+{
+  "info": {
+    "_postman_id": "c85d8937-29ab-4a57-8be3-4876214a1e90",
+    "name": "LogiTrack API Gateway - Dynamic Routes (Sprint 3)",
+    "description": "Colección de pruebas para las rutas dinámicas del API Gateway hacia los microservicios downstream (security-service, courier-service, shipment-service) resueltas vía Spring Cloud LoadBalancer y Eureka.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "gatewayUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "courierId",
+      "value": "474a3531-2c9d-486f-8a65-23fc1ff82319",
+      "type": "string"
+    },
+    {
+      "key": "shipmentId",
+      "value": "550e8400-e29b-41d4-a716-446655440000",
+      "type": "string"
+    },
+    {
+      "key": "customerId",
+      "value": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Security Service (lb://SECURITY-SERVICE)",
+      "item": [
+        {
+          "name": "POST /api/v1/auth/register - Registrar Cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"cliente_prueba\",\n  \"password\": \"Password123!\",\n  \"email\": \"cliente@logitrack.com\"\n}"
+            },
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/auth/register",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/v1/auth/login - Autenticar y Emitir JWT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "    pm.collectionVariables.set('authToken', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/auth/login",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/auth/me - Perfil Autenticado",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/auth/me",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/auth/jwks - Conjunto de Claves Públicas (JWKS)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/auth/jwks",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "auth", "jwks"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/users - Listar Usuarios (ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/users?page=0&size=10",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "users"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Courier Service (lb://COURIER-SERVICE)",
+      "item": [
+        {
+          "name": "POST /api/v1/couriers - Crear Repartidor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carlos\",\n  \"lastName\": \"Gómez\",\n  \"dni\": \"35123456\",\n  \"phone\": \"+5491122334455\",\n  \"email\": \"carlos.gomez@logitrack.com\"\n}"
+            },
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/couriers",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "couriers"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/couriers - Listar Repartidores Paginados",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/couriers?status=ACTIVO&page=0&size=10",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "couriers"],
+              "query": [
+                { "key": "status", "value": "ACTIVO" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/couriers/:id - Obtener Detalle de Repartidor",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/couriers/{{courierId}}",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "couriers", "{{courierId}}"]
+            }
+          }
+        },
+        {
+          "name": "PATCH /api/v1/couriers/:id/status - Cambiar Estado Operativo",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVO\"\n}"
+            },
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/couriers/{{courierId}}/status",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "couriers", "{{courierId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/internal/couriers/:id/status - Estado Mínimo Interno",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/internal/couriers/{{courierId}}/status",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "internal", "couriers", "{{courierId}}", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Shipment Service (lb://SHIPMENT-SERVICE)",
+      "item": [
+        {
+          "name": "POST /api/v1/shipments - Crear Envío",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senderId\": \"{{customerId}}\",\n  \"recipientName\": \"María López\",\n  \"destinationAddress\": \"Av. Corrientes 1234, CABA\",\n  \"weight\": 2.5,\n  \"height\": 10.0,\n  \"width\": 20.0,\n  \"length\": 30.0\n}"
+            },
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/shipments",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "shipments"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/shipments - Listar Envíos",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/shipments?page=0&size=10",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "shipments"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/shipments/:id - Obtener Envío",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/shipments/{{shipmentId}}",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "shipments", "{{shipmentId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/v1/shipments/:id/courier - Asignar Repartidor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courierId\": \"{{courierId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/shipments/{{shipmentId}}/courier",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "shipments", "{{shipmentId}}", "courier"]
+            }
+          }
+        },
+        {
+          "name": "PATCH /api/v1/shipments/:id/status - Avanzar Estado de Envío",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"EN_RUTA\",\n  \"observation\": \"Paquete recolectado por el repartidor\"\n}"
+            },
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/shipments/{{shipmentId}}/status",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "shipments", "{{shipmentId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/v1/shipments/:id/cancellation - Cancelar Envío PENDIENTE",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/shipments/{{shipmentId}}/cancellation",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "shipments", "{{shipmentId}}", "cancellation"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/shipments/:id/history - Historial Cronológico de Estados",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/shipments/{{shipmentId}}/history",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "shipments", "{{shipmentId}}", "history"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/v1/customers - Crear Cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Empresa SA\",\n  \"cuit\": \"30-71234567-8\",\n  \"email\": \"contacto@empresasa.com\",\n  \"phone\": \"+541144556677\"\n}"
+            },
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/customers",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/customers - Listar Clientes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{gatewayUrl}}/api/v1/customers",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - API Gateway Actuator & Fallback",
+      "item": [
+        {
+          "name": "GET /actuator/health - Estado de Salud del Gateway",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gatewayUrl}}/actuator/health",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["actuator", "health"]
+            }
+          }
+        },
+        {
+          "name": "GET /actuator/gateway/routes - Inspección de Rutas Dinámicas",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gatewayUrl}}/actuator/gateway/routes",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["actuator", "gateway", "routes"]
+            }
+          }
+        },
+        {
+          "name": "GET /fallback - Verificación de Endpoint de Contingencia",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gatewayUrl}}/fallback",
+              "host": ["{{gatewayUrl}}"],
+              "path": ["fallback"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

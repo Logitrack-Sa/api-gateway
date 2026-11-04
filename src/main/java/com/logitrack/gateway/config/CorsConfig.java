@@ -1,13 +1,13 @@
 package com.logitrack.gateway.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * Configuraci&oacute;n reactiva de Cross-Origin Resource Sharing (CORS) a nivel del API Gateway.
@@ -20,45 +20,65 @@ import java.util.Collections;
  * <p>Al tratarse de una aplicaci&oacute;n reactiva basada en Spring WebFlux, se emplea
  * {@link CorsWebFilter} en lugar de filtros Servlet cl&aacute;sicos de WebMVC.</p>
  *
+ * <p>Las pol&iacute;ticas se administran din&aacute;micamente mediante {@link CorsProperties},
+ * lo que permite sincronizar los or&iacute;genes y m&eacute;todos autorizados desde Spring Cloud
+ * Config Server sin requerir compilaciones adicionales.</p>
+ *
  * @author GonzaCarrillo
- * @version 1.0.0
+ * @version 1.1.0
  * @since Sprint 3
  */
 @Configuration
+@EnableConfigurationProperties(CorsProperties.class)
 public class CorsConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(CorsConfig.class);
+
+    private final CorsProperties corsProperties;
+
+    /**
+     * Construye la configuraci&oacute;n de CORS inyectando las propiedades reactivas del Gateway.
+     *
+     * @param corsProperties Propiedades externalizadas de CORS con or&iacute;genes y m&eacute;todos permitidos.
+     */
+    public CorsConfig(CorsProperties corsProperties) {
+        this.corsProperties = corsProperties;
+    }
 
     /**
      * Define el filtro reactivo de CORS para interceptar todas las rutas procesadas por el Gateway.
      *
-     * <p>Permite:</p>
+     * <p>Configura:</p>
      * <ul>
-     *   <li>Or&iacute;genes permitidos: configurables, permitiendo por defecto tr&aacute;fico desde entornos web de LogiTrack.</li>
+     *   <li>Or&iacute;genes permitidos: configurables mediante {@link CorsProperties#getAllowedOrigins()},
+     *       soportando patrones de dominio para entornos de desarrollo y producci&oacute;n.</li>
      *   <li>M&eacute;todos HTTP: {@code GET}, {@code POST}, {@code PUT}, {@code DELETE}, {@code PATCH}, {@code OPTIONS}.</li>
      *   <li>Encabezados permitidos: {@code Authorization}, {@code Content-Type}, {@code Accept}, entre otros.</li>
-     *   <li>Respuestas preflight en cach&eacute; durante 3600 segundos para minimizar la sobrecarga de red.</li>
+     *   <li>Encabezados expuestos: {@code Authorization}, {@code Content-Disposition}, identificadores de usuario.</li>
+     *   <li>Respuestas preflight en cach&eacute; durante el tiempo configurado para minimizar la sobrecarga de red.</li>
      * </ul>
      *
      * @return Instancia configurada de {@link CorsWebFilter}.
      */
     @Bean
     public CorsWebFilter corsWebFilter() {
+        if (!corsProperties.isEnabled()) {
+            log.warn("Filtro reactivo CORS deshabilitado por configuración (logitrack.gateway.cors.enabled=false)");
+            return new CorsWebFilter(new UrlBasedCorsConfigurationSource());
+        }
+
+        log.info("Inicializando filtro reactivo CORS perimetral. Orígenes autorizados: {}",
+                corsProperties.getAllowedOrigins());
+
         CorsConfiguration corsConfig = new CorsConfiguration();
 
-        // Permite cualquier origen de forma segura o configurable por variable
-        corsConfig.setAllowedOriginPatterns(Collections.singletonList("*"));
-        corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        corsConfig.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "Accept",
-                "X-Requested-With",
-                "Origin",
-                "Access-Control-Request-Method",
-                "Access-Control-Request-Headers"
-        ));
-        corsConfig.setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition"));
-        corsConfig.setAllowCredentials(true);
-        corsConfig.setMaxAge(3600L);
+        // Se configuran patrones de orígenes para admitir dominios exactos y subdominios con allowCredentials
+        corsConfig.setAllowedOriginPatterns(corsProperties.getAllowedOrigins());
+        corsConfig.setAllowedMethods(corsProperties.getAllowedMethods());
+        corsConfig.setAllowedHeaders(corsProperties.getAllowedHeaders());
+        corsConfig.setExposedHeaders(corsProperties.getExposedHeaders());
+        corsConfig.setAllowCredentials(corsProperties.isAllowCredentials());
+        corsConfig.setMaxAge(corsProperties.getMaxAge());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);

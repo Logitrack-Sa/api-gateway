@@ -12,32 +12,81 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials Access-Control-Allow-Methods Access-Control-Allow-Headers, RETAIN_FIRST
       routes:
-        # Rutas de autenticación y gestión de identidades hacia security-service
-        - id: security-service-public
+        # 1. security-service: Autenticación, registro, perfil y llaves públicas
+        - id: security-service-auth
           uri: lb://SECURITY-SERVICE
           predicates:
-            - Path=/api/auth/**
+            - Path=/api/v1/auth/**, /api/auth/**
+          order: 100
+
+        # 2. security-service: Administración de identidades y usuarios
         - id: security-service-users
           uri: lb://SECURITY-SERVICE
           predicates:
-            - Path=/api/users/**
+            - Path=/api/v1/users/**, /api/users/**
+          order: 110
 
-        # Rutas de gestión de envíos y clientes hacia shipment-service
-        - id: shipment-service-route
-          uri: lb://SHIPMENT-SERVICE
-          predicates:
-            - Path=/api/shipments/**, /api/customers/**
-
-        # Rutas de gestión de repartidores hacia courier-service
-        - id: courier-service-route
+        # 3. courier-service: Gestión operativa y ciclo de vida de repartidores
+        - id: courier-service-couriers
           uri: lb://COURIER-SERVICE
           predicates:
-            - Path=/api/couriers/**
+            - Path=/api/v1/couriers/**, /api/couriers/**
+          order: 200
+
+        # 4. courier-service: Contrato interno de estado mínimo entre microservicios
+        - id: courier-service-internal
+          uri: lb://COURIER-SERVICE
+          predicates:
+            - Path=/api/v1/internal/couriers/**, /api/internal/couriers/**
+          order: 210
+
+        # 5. shipment-service: Gestión de envíos, transiciones y cancelación
+        - id: shipment-service-shipments
+          uri: lb://SHIPMENT-SERVICE
+          predicates:
+            - Path=/api/v1/shipments/**, /api/shipments/**
+          order: 300
+
+        # 6. shipment-service: Gestión y consulta de clientes
+        - id: shipment-service-customers
+          uri: lb://SHIPMENT-SERVICE
+          predicates:
+            - Path=/api/v1/customers/**, /api/customers/**
+          order: 310
+
+        # 7. Documentación OpenAPI consolidada por microservicio
+        - id: security-service-openapi
+          uri: lb://SECURITY-SERVICE
+          predicates:
+            - Path=/v3/api-docs/security-service
+          filters:
+            - RewritePath=/v3/api-docs/security-service, /v3/api-docs
+          order: 400
+
+        - id: courier-service-openapi
+          uri: lb://COURIER-SERVICE
+          predicates:
+            - Path=/v3/api-docs/courier-service
+          filters:
+            - RewritePath=/v3/api-docs/courier-service, /v3/api-docs
+          order: 410
+
+        - id: shipment-service-openapi
+          uri: lb://SHIPMENT-SERVICE
+          predicates:
+            - Path=/v3/api-docs/shipment-service
+          filters:
+            - RewritePath=/v3/api-docs/shipment-service, /v3/api-docs
+          order: 420
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}
 
 eureka:
   client:
-    enabled: ${EUREKA_CLIENT_ENABLED:false}
+    enabled: ${EUREKA_CLIENT_ENABLED:true}
     service-url:
       defaultZone: ${EUREKA_SERVER_URL:http://localhost:8065/eureka/}
     register-with-eureka: ${EUREKA_REGISTER_WITH_EUREKA:true}
@@ -55,7 +104,7 @@ management:
     health:
       show-details: always
     gateway:
-      enabled: true
+      access: unrestricted
 
 # Configuración de registro y auditoría
 logging:
@@ -63,3 +112,44 @@ logging:
     root: INFO
     org.springframework.cloud.gateway: INFO
     com.logitrack.gateway: DEBUG
+
+# Configuración de LogiTrack (CORS perimetral y Seguridad JWT)
+logitrack:
+  gateway:
+    cors:
+      enabled: true
+      allowed-origins:
+        - "http://localhost:3000"
+        - "http://localhost:5173"
+        - "http://localhost:4200"
+        - "http://localhost:8080"
+        - "http://127.0.0.1:3000"
+        - "http://127.0.0.1:5173"
+      allowed-methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - PATCH
+        - OPTIONS
+      allowed-headers:
+        - Authorization
+        - Content-Type
+        - Accept
+        - Origin
+        - X-Requested-With
+        - Access-Control-Request-Method
+        - Access-Control-Request-Headers
+      exposed-headers:
+        - Authorization
+        - Content-Disposition
+        - X-User-Id
+        - X-User-Roles
+      allow-credentials: true
+      max-age: 3600
+  security:
+    jwt:
+      public-key-location: ${JWT_PUBLIC_KEY_LOCATION:classpath:certs/public.pem}
+      issuer: ${JWT_ISSUER:https://security-service}
+      key-id: ${JWT_KEY_ID:logitrack-main}
+      clock-skew-seconds: ${JWT_CLOCK_SKEW_SECONDS:30}
