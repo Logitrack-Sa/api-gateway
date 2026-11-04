@@ -74,6 +74,9 @@ public class JwtTokenValidator {
             }
 
             // 2. Verificar Firma Criptográfica con clave pública RSA
+            if (!properties.getKeyId().equals(signedJwt.getHeader().getKeyID())) {
+                throw new IllegalArgumentException("Identificador de clave JWT no confiable.");
+            }
             RSASSAVerifier verifier = new RSASSAVerifier(keyProvider.getPublicKey());
             if (!signedJwt.verify(verifier)) {
                 throw new IllegalArgumentException("Firma criptográfica del token inválida o adulterada.");
@@ -85,11 +88,21 @@ public class JwtTokenValidator {
 
             // 3. Validar Expiración
             Date expirationTime = claimsSet.getExpirationTime();
-            if (expirationTime != null) {
+            if (expirationTime == null) {
+                throw new IllegalArgumentException("El token JWT requiere fecha de expiración.");
+            } else {
                 Instant expInstant = expirationTime.toInstant();
                 if (now.isAfter(expInstant.plusSeconds(clockSkew))) {
                     throw new IllegalArgumentException("El token JWT ha expirado.");
                 }
+            }
+
+            if (claimsSet.getNotBeforeTime() != null &&
+                    claimsSet.getNotBeforeTime().toInstant().isAfter(now.plusSeconds(clockSkew))) {
+                throw new IllegalArgumentException("El token JWT todavía no es válido.");
+            }
+            if (claimsSet.getAudience().stream().noneMatch(properties.getAudiences()::contains)) {
+                throw new IllegalArgumentException("Audiencia del token JWT no permitida.");
             }
 
             // 4. Validar Fecha de Emisión (No emisión en el futuro)
@@ -104,7 +117,7 @@ public class JwtTokenValidator {
             // 5. Validar Emisor (si está configurado)
             if (properties.getIssuer() != null && !properties.getIssuer().isBlank()) {
                 String issuer = claimsSet.getIssuer();
-                if (issuer != null && !properties.getIssuer().equals(issuer)) {
+                if (!properties.getIssuer().equals(issuer)) {
                     throw new IllegalArgumentException("Emisor de token no confiable: " + issuer);
                 }
             }

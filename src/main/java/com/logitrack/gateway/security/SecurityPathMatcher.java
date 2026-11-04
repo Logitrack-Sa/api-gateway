@@ -124,12 +124,12 @@ public class SecurityPathMatcher {
         // 5. Endpoints de envíos (shipment-service)
         if (path.startsWith("/api/v1/shipments") || path.startsWith("/api/shipments")) {
             // Asignación de repartidor: Exclusivo ADMIN
-            if (path.endsWith("/courier") && HttpMethod.POST.equals(method)) {
+            if (path.endsWith("/courier") && HttpMethod.PUT.equals(method)) {
                 return false;
             }
 
             // Cancelación de envío: Exclusivo ADMIN
-            if (path.endsWith("/cancellation") && HttpMethod.POST.equals(method)) {
+            if (path.endsWith("/cancellations") && HttpMethod.POST.equals(method)) {
                 return false;
             }
 

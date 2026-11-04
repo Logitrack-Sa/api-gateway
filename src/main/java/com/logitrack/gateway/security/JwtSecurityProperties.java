@@ -1,5 +1,6 @@
 package com.logitrack.gateway.security;
 
+import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +39,18 @@ public class JwtSecurityProperties {
      * Tolerancia temporal en segundos para discrepancias de reloj entre servidores (clock skew).
      */
     private long clockSkewSeconds = 30;
+
+    private List<String> audiences = List.of("security-service", "courier-service", "shipment-service");
+
+    /** @return Audiencias de los servicios protegidos. */
+    public List<String> getAudiences() {
+        return audiences;
+    }
+
+    /** @param audiences Audiencias aceptadas por el Gateway. */
+    public void setAudiences(List<String> audiences) {
+        this.audiences = List.copyOf(audiences);
+    }
 
     /**
      * Constructor predeterminado de las propiedades de seguridad JWT.

@@ -1,1 +1,5 @@
 spring.config.import: configserver:${CONFIG_SERVER_URL}
+logitrack.security.jwt:
+  public-key-location: ${JWT_PUBLIC_KEY_LOCATION}
+  issuer: ${JWT_ISSUER}
+  key-id: ${JWT_KEY_ID}
