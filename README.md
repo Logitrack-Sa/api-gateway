@@ -62,7 +62,7 @@ Este componente centraliza el acceso externo, desacopla a los clientes de las di
 * Si Eureka Server aún no está disponible (mientras se completa la Issue #77), el Gateway arranca de forma resiliente y se reconecta automáticamente una vez que Eureka inicie.
 
 ### 3. Integración con Config Server
-* Incorpora `spring-cloud-starter-config` configurado mediante `spring.config.import=optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}`.
+* Incorpora `spring-cloud-starter-config` con import obligatorio en dev/prod. Las rutas y CORS se obtienen de config-repo; el arranque no utiliza una copia local distinta.
 * Al usar el prefijo `optional:`, el servicio puede iniciar con valores por defecto locales si Config Server está en mantenimiento o en proceso de arranque.
 * En `config-repo`, se definieron los archivos `api-gateway.properties`, `api-gateway-dev.properties` y `api-gateway-prod.properties` para la centralización completa de parámetros perimetrales.
 
@@ -218,4 +218,9 @@ Compose utiliza `SPRING_PROFILES_ACTIVE=prod,sprint3` y `CONFIG_SERVER_URL`.
 Config Client es obligatorio; el perfil sprint3 centraliza Eureka y anuncia
 `SERVICE_HOST=api-gateway`. Mantener `EUREKA_SERVER_URL=http://eureka-server:8065/eureka/`.
 La compatibilidad Boot 3.5 / Cloud 2025.0 se verifica al arrancar.
-La implementacion de rutas, JWT y CORS continua en #81-#83.
+Las rutas, JWT y CORS de #81-#83 se integran con Eureka en el perfil sprint3.
+En produccion se requieren CONFIG_SERVER_URL, JWT_PUBLIC_KEY_LOCATION,
+JWT_ISSUER y JWT_KEY_ID. La clave publica debe corresponder al emisor security;
+una ruta de clave invalida impide el arranque y no utiliza claves de prueba.
+El Gateway valida firma, kid, issuer, audiencia y vigencia del JWT; cada servicio
+mantiene ademas sus controles locales de permisos y pertenencia.
