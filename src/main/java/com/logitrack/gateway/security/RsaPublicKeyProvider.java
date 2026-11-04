@@ -80,30 +80,16 @@ public class RsaPublicKeyProvider {
      * @return Instancia de {@link RSAPublicKey}.
      */
     private RSAPublicKey loadPublicKey() {
-        String[] candidateLocations = {
-                properties.getPublicKeyLocation(),
-                "file:certs/public.pem",
-                "file:../certs/public.pem",
-                "classpath:certs/public.pem"
-        };
-
-        for (String location : candidateLocations) {
-            if (location == null || location.isBlank()) {
-                continue;
-            }
-            try {
-                Resource resource = resourceLoader.getResource(location);
-                if (resource.exists()) {
-                    String pem = resource.getContentAsString(StandardCharsets.UTF_8);
-                    log.info("[Security] Material criptográfico cargado desde: {}", location);
-                    return parsePublicKeyFromPem(pem);
-                }
-            } catch (IOException | GeneralSecurityException ex) {
-                log.debug("[Security] No fue posible cargar clave pública desde {}: {}", location, ex.getMessage());
-            }
+        String location = properties.getPublicKeyLocation();
+        if (location == null || location.isBlank()) {
+            throw new IllegalStateException("Configurar la clave pública RSA del emisor.");
         }
-
-        throw new IllegalStateException("No se pudo localizar un archivo de clave pública RSA válido para validar JWT.");
+        try {
+            Resource resource = resourceLoader.getResource(location);
+            return parsePublicKeyFromPem(resource.getContentAsString(StandardCharsets.UTF_8));
+        } catch (IOException | GeneralSecurityException | IllegalArgumentException ex) {
+            throw new IllegalStateException("No se pudo cargar la clave pública RSA configurada.", ex);
+        }
     }
 
     /**
