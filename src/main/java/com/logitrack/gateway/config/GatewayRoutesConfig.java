@@ -53,7 +53,7 @@ public class GatewayRoutesConfig {
     public static final String URI_SECURITY = "lb://" + SERVICE_SECURITY;
 
     /**
-     * Nombre l&oacute;gico del microservicio de repartidores registrado en Eureka.
+     * Nombre l&ogico del microservicio de repartidores registrado en Eureka.
      */
     public static final String SERVICE_COURIER = "COURIER-SERVICE";
 
@@ -71,6 +71,16 @@ public class GatewayRoutesConfig {
      * URI din&aacute;mica balanceada hacia el microservicio de env&iacute;os y clientes.
      */
     public static final String URI_SHIPMENT = "lb://" + SERVICE_SHIPMENT;
+
+    /**
+     * Nombre l&oacute;gico del microservicio de chatbot ag&eacute;ntico registrado en Eureka.
+     */
+    public static final String SERVICE_CHATBOT = "CHATBOT-SERVICE";
+
+    /**
+     * URI din&aacute;mica balanceada hacia el microservicio de chatbot ag&eacute;ntico.
+     */
+    public static final String URI_CHATBOT = "lb://" + SERVICE_CHATBOT;
 
     /**
      * Identificador de la ruta de autenticaci&oacute;n p&uacute;blica y credenciales.
@@ -101,6 +111,11 @@ public class GatewayRoutesConfig {
      * Identificador de la ruta de gesti&oacute;n y consulta de clientes.
      */
     public static final String ROUTE_SHIPMENT_CUSTOMERS = "shipment-service-customers";
+
+    /**
+     * Identificador de la ruta de asistente conversacional chatbot.
+     */
+    public static final String ROUTE_CHATBOT_CHAT = "chatbot-service-chat";
 
     /**
      * Registra un ejecutor de diagn&oacute;stico que audita en los registros del sistema
