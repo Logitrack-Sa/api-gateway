@@ -48,10 +48,12 @@ public class SecurityPathMatcher {
             return true;
         }
 
-        // 2. Endpoints de autenticación y claves públicas
+        // 2. Endpoints de autenticación, verificación y claves públicas
         if (HttpMethod.POST.equals(method) &&
                 (path.equals("/api/v1/auth/login") || path.equals("/api/auth/login") ||
-                 path.equals("/api/v1/auth/register") || path.equals("/api/auth/register"))) {
+                 path.equals("/api/v1/auth/register") || path.equals("/api/auth/register") ||
+                 path.startsWith("/api/v1/auth/verify-email") || path.startsWith("/api/auth/verify-email") ||
+                 path.equals("/api/v1/auth/resend-verification") || path.equals("/api/auth/resend-verification"))) {
             return true;
         }
 
@@ -149,6 +151,11 @@ public class SecurityPathMatcher {
             if (HttpMethod.GET.equals(method)) {
                 return true;
             }
+        }
+
+        // 6. Asistente Conversacional IA (chatbot-service): Permitido a todos los usuarios autenticados
+        if (path.startsWith("/api/v1/chat") || path.startsWith("/api/chat")) {
+            return true;
         }
 
         // Por política de seguridad por defecto: si no coincide con permisos conocidos, se deniega

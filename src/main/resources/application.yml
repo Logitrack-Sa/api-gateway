@@ -81,6 +81,13 @@ spring:
           filters:
             - RewritePath=/v3/api-docs/shipment-service, /v3/api-docs
           order: 420
+
+        # 8. chatbot-service: Asistente virtual y streaming reactivo SSE
+        - id: chatbot-service-chat
+          uri: lb://CHATBOT-SERVICE
+          predicates:
+            - Path=/api/v1/chat/**, /api/chat/**
+          order: 430
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}
 
@@ -99,12 +106,20 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        include: health,info,gateway,prometheus
   endpoint:
     health:
       show-details: always
     gateway:
       access: unrestricted
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
 
 # Configuración de registro y auditoría
 logging:
