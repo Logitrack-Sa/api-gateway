@@ -12,16 +12,16 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 /**
  * Configuraci&oacute;n reactiva de Cross-Origin Resource Sharing (CORS) a nivel del API Gateway.
  *
- * <p>Centralizar CORS en el per&iacute;metro de la arquitectura evita duplicaci&oacute;n de encabezados
+ * <p>Centralizar CORS en el perimetro de la arquitectura evita duplicacion de encabezados
  * {@code Access-Control-Allow-*} en los microservicios aguas abajo y garantiza una respuesta
- * homog&eacute;nea ante las solicitudes preflight {@code OPTIONS} provenientes de aplicaciones web
+ * homogenea ante las solicitudes preflight {@code OPTIONS} provenientes de aplicaciones web
  * y clientes frontend.</p>
  *
- * <p>Al tratarse de una aplicaci&oacute;n reactiva basada en Spring WebFlux, se emplea
- * {@link CorsWebFilter} en lugar de filtros Servlet cl&aacute;sicos de WebMVC.</p>
+ * <p>Al tratarse de una aplicacion reactiva basada en Spring WebFlux, se emplea
+ * {@link CorsWebFilter} en lugar de filtros Servlet clasicos de WebMVC.</p>
  *
- * <p>Las pol&iacute;ticas se administran din&aacute;micamente mediante {@link CorsProperties},
- * lo que permite sincronizar los or&iacute;genes y m&eacute;todos autorizados desde Spring Cloud
+ * <p>Las politicas se administran dinamicamente mediante {@link CorsProperties},
+ * lo que permite sincronizar los origenes y metodos autorizados desde Spring Cloud
  * Config Server sin requerir compilaciones adicionales.</p>
  *
  * @author GonzaCarrillo
@@ -37,9 +37,8 @@ public class CorsConfig {
     private final CorsProperties corsProperties;
 
     /**
-     * Construye la configuraci&oacute;n de CORS inyectando las propiedades reactivas del Gateway.
-     *
-     * @param corsProperties Propiedades externalizadas de CORS con or&iacute;genes y m&eacute;todos permitidos.
+     * Construye la configuracionn de CORS inyectando las propiedades reactivas del Gateway.
+     * @param corsProperties Propiedades externalizadas de CORS con origenes y metodos permitidos.
      */
     public CorsConfig(CorsProperties corsProperties) {
         this.corsProperties = corsProperties;
@@ -50,9 +49,9 @@ public class CorsConfig {
      *
      * <p>Configura:</p>
      * <ul>
-     *   <li>Or&iacute;genes permitidos: configurables mediante {@link CorsProperties#getAllowedOrigins()},
+     *   <li>Origenes permitidos: configurables mediante {@link CorsProperties#getAllowedOrigins()},
      *       soportando patrones de dominio para entornos de desarrollo y producci&oacute;n.</li>
-     *   <li>M&eacute;todos HTTP: {@code GET}, {@code POST}, {@code PUT}, {@code DELETE}, {@code PATCH}, {@code OPTIONS}.</li>
+     *   <li>Metodos HTTP: {@code GET}, {@code POST}, {@code PUT}, {@code DELETE}, {@code PATCH}, {@code OPTIONS}.</li>
      *   <li>Encabezados permitidos: {@code Authorization}, {@code Content-Type}, {@code Accept}, entre otros.</li>
      *   <li>Encabezados expuestos: {@code Authorization}, {@code Content-Disposition}, identificadores de usuario.</li>
      *   <li>Respuestas preflight en cach&eacute; durante el tiempo configurado para minimizar la sobrecarga de red.</li>
