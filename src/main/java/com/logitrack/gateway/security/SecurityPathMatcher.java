@@ -43,6 +43,10 @@ public class SecurityPathMatcher {
             return false;
         }
 
+        if (isPublicTracking(path, method)) {
+            return true;
+        }
+
         // 1. Solicitudes de preflight CORS (OPTIONS)
         if (HttpMethod.OPTIONS.equals(method)) {
             return true;
@@ -160,5 +164,10 @@ public class SecurityPathMatcher {
 
         // Por política de seguridad por defecto: si no coincide con permisos conocidos, se deniega
         return false;
+    }
+
+    public boolean isPublicTracking(String path, HttpMethod method) {
+        return HttpMethod.GET.equals(method) && path != null
+                && path.matches("/api/v1/shipments/public-tracking/[^/]+");
     }
 }
