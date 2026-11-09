@@ -47,6 +47,10 @@ public class SecurityPathMatcher {
             return true;
         }
 
+        if (HttpMethod.POST.equals(method) && path.equals("/api/v1/payments/webhooks/mercadopago")) {
+            return true; // El servicio valida la firma HMAC del proveedor.
+        }
+
         // 1. Solicitudes de preflight CORS (OPTIONS)
         if (HttpMethod.OPTIONS.equals(method)) {
             return true;
@@ -158,6 +162,10 @@ public class SecurityPathMatcher {
         }
 
         // 6. Asistente Conversacional IA (chatbot-service): Permitido a todos los usuarios autenticados
+        if (path.startsWith("/api/v1/payments/")) {
+            return user.isCliente() && (HttpMethod.GET.equals(method) || HttpMethod.POST.equals(method));
+        }
+
         if (path.startsWith("/api/v1/chat") || path.startsWith("/api/chat")) {
             return true;
         }
