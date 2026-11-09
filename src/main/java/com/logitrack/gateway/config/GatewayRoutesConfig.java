@@ -53,7 +53,7 @@ public class GatewayRoutesConfig {
     public static final String URI_SECURITY = "lb://" + SERVICE_SECURITY;
 
     /**
-     * Nombre l&ogico del microservicio de repartidores registrado en Eureka.
+     * Nombre l&oacute;gico del microservicio de repartidores registrado en Eureka.
      */
     public static final String SERVICE_COURIER = "COURIER-SERVICE";
 
