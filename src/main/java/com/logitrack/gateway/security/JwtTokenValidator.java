@@ -21,7 +21,7 @@ import java.util.UUID;
 /**
  * Validador criptogr&aacute;fico y extractor de identidad de tokens JWT para Spring Cloud Gateway.
  *
- * <p>Verifica que los tokens cumplan estrictamente con las especificaciones del Sprint 2:</p>
+ * <p>Verifica que los tokens cumplan estrictamente con las especificaciones de LogiTrack:</p>
  * <ul>
  *   <li>Algoritmo de firma digital asim&eacute;trica {@code RS256}.</li>
  *   <li>Verificaci&oacute;n criptogr&aacute;fica con la clave p&uacute;blica RSA oficial de LogiTrack.</li>
@@ -32,7 +32,6 @@ import java.util.UUID;
  *
  * @author GonzaCarrillo
  * @version 1.0.0
- * @since Sprint 3
  */
 @Component
 public class JwtTokenValidator {

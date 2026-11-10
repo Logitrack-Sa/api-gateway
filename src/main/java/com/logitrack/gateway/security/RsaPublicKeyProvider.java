@@ -24,7 +24,6 @@ import java.util.Base64;
  *
  * @author GonzaCarrillo
  * @version 1.0.0
- * @since Sprint 3
  */
 @Component
 public class RsaPublicKeyProvider {

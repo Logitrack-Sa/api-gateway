@@ -23,7 +23,6 @@ import java.util.Map;
  *
  * @author GonzaCarrillo
  * @version 1.0.0
- * @since Sprint 3
  */
 @RestController
 @RequestMapping("/fallback")

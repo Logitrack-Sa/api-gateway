@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
  *
  * @author GonzaCarrillo
  * @version 1.0.0
- * @since Sprint 3
  */
 @Component
 @ConfigurationProperties(prefix = "logitrack.security.jwt")

@@ -14,7 +14,6 @@ import java.util.UUID;
  *
  * @author GonzaCarrillo
  * @version 1.0.0
- * @since Sprint 3
  */
 public final class AuthenticatedUser {
 

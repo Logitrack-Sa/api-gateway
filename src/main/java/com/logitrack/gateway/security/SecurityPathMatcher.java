@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 /**
  * Gestor de reglas de autorizaci&oacute;n por roles (RBAC) y clasificaci&oacute;n de rutas p&uacute;blicas y protegidas.
  *
- * <p>Centraliza la matriz de control de acceso del ecosistema LogiTrack definida en el Sprint 2:</p>
+ * <p>Centraliza la matriz de control de acceso del ecosistema LogiTrack definida en LogiTrack:</p>
  * <ul>
  *   <li><b>P&uacute;blicas:</b> Autenticaci&oacute;n ({@code /api/v1/auth/register}, {@code /api/v1/auth/login},
  *       {@code /api/v1/auth/jwks}, {@code /api/v1/auth/public-key}), Actuator, contingencias (fallback) y OpenAPI.</li>
@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
  *
  * @author GonzaCarrillo
  * @version 1.0.0
- * @since Sprint 3
  */
 @Component
 public class SecurityPathMatcher {
@@ -147,9 +146,9 @@ public class SecurityPathMatcher {
                 return false;
             }
 
-            // Cancelación de envío: Exclusivo ADMIN
-            if (path.endsWith("/cancellations") && HttpMethod.POST.equals(method)) {
-                return false;
+            // Shipment valida que el cliente sea propietario del envío.
+            if ((path.endsWith("/cancellation") || path.endsWith("/cancellations")) && HttpMethod.POST.equals(method)) {
+                return user.isCliente();
             }
 
             // Cambio de estado: ADMIN o REPARTIDOR (CLIENTE denegado)

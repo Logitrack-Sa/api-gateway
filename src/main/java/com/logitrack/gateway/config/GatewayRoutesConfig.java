@@ -29,7 +29,6 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author GonzaCarrillo
  * @version 1.1.0
- * @since Sprint 3
  */
 @Configuration
 public class GatewayRoutesConfig {

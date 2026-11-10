@@ -88,6 +88,11 @@ spring:
           predicates:
             - Path=/api/v1/chat/**, /api/chat/**
           order: 430
+        - id: payment-service-payments
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/api/v1/payments/**
+          order: 440
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}
 

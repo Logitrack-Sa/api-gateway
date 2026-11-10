@@ -32,7 +32,6 @@ import java.net.InetSocketAddress;
  *
  * @author GonzaCarrillo
  * @version 1.0.0
- * @since Sprint 3
  */
 @Component
 public class LoggingGlobalFilter implements GlobalFilter, Ordered {

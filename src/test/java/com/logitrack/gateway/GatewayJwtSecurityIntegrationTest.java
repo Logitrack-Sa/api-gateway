@@ -222,15 +222,15 @@ class GatewayJwtSecurityIntegrationTest {
         }
 
         @Test
-        @DisplayName("Rol CLIENTE intentando cancelar un envío debe ser rechazado con HTTP 403 (solo ADMIN)")
-        void clienteCannotCancelShipment() {
+        @DisplayName("El Gateway permite cancelar al CLIENTE; Shipment comprueba la pertenencia")
+        void clienteCancellationIsForwardedToShipment() {
             String clientToken = JwtTestHelper.generateToken(USER_CLIENTE_ID, List.of("CLIENTE"), UUID.randomUUID(), null);
 
             webTestClient.post()
                     .uri("/api/v1/shipments/550e8400-e29b-41d4-a716-446655440000/cancellation")
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + clientToken)
                     .exchange()
-                    .expectStatus().isForbidden();
+                    .expectStatus().isEqualTo(503);
         }
 
         @Test

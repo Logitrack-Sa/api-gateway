@@ -26,7 +26,6 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
  *
  * @author GonzaCarrillo
  * @version 1.1.0
- * @since Sprint 3
  */
 @Configuration
 @EnableConfigurationProperties(CorsProperties.class)

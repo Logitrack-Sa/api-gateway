@@ -35,7 +35,6 @@ import reactor.core.publisher.Mono;
  *
  * @author GonzaCarrillo
  * @version 1.0.0
- * @since Sprint 3
  */
 @Component
 public class JwtSecurityGlobalFilter implements GlobalFilter, Ordered {

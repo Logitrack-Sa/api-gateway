@@ -13,7 +13,6 @@ import java.time.Instant;
  *
  * @author GonzaCarrillo
  * @version 1.0.0
- * @since Sprint 3
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SecurityErrorResponse {

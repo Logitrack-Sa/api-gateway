@@ -27,7 +27,6 @@ import java.util.List;
  *
  * @author GonzaCarrillo
  * @version 1.0.0
- * @since Sprint 3
  */
 @ConfigurationProperties(prefix = "logitrack.gateway.cors")
 public class CorsProperties {
