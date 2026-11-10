@@ -106,12 +106,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway,prometheus
+        include: health,info,prometheus
   endpoint:
     health:
-      show-details: always
+      show-details: never
     gateway:
-      access: unrestricted
+      access: none
     prometheus:
       enabled: true
   metrics:
