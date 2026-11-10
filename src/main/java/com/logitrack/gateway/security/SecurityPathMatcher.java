@@ -62,6 +62,11 @@ public class SecurityPathMatcher {
 
         // 2. Endpoints de autenticación, verificación y claves públicas
         if (HttpMethod.POST.equals(method) &&
+                (path.equals("/api/v1/auth/forgot-password") || path.equals("/api/auth/forgot-password") ||
+                 path.equals("/api/v1/auth/reset-password") || path.equals("/api/auth/reset-password"))) {
+            return true;
+        }
+        if (HttpMethod.POST.equals(method) &&
                 (path.equals("/api/v1/auth/login") || path.equals("/api/auth/login") ||
                  path.equals("/api/v1/auth/register") || path.equals("/api/auth/register") ||
                  path.startsWith("/api/v1/auth/verify-email") || path.startsWith("/api/auth/verify-email") ||
