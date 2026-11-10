@@ -47,6 +47,10 @@ public class SecurityPathMatcher {
             return true;
         }
 
+        if (HttpMethod.POST.equals(method) && path.equals("/api/v1/chat/public/message")) {
+            return true;
+        }
+
         if (HttpMethod.POST.equals(method) && path.equals("/api/v1/payments/webhooks/mercadopago")) {
             return true; // El servicio valida la firma HMAC del proveedor.
         }
